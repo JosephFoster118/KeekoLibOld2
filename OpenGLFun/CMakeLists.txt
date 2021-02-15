@@ -12,4 +12,4 @@ set(SRCS "main.cpp" "src/Shape.cpp" "src/Rectangle.cpp" "src/TestClass.cpp"
 add_executable (OpenGLFun ${SRCS})
 find_package(GLEW REQUIRED)
 include_directories(${GLEW_INCLUDE_DIRS})
-target_link_libraries(OpenGLFun -lGL -lGLU -lglut ${GLEW_LIBRARIES} -lpthread -lKeekoLib)
+target_link_libraries(OpenGLFun -lGL -lGLU -lglfw  ${GLEW_LIBRARIES}  -lKeekoLib  -lpthread)
