@@ -4,12 +4,13 @@
 #include <cstdint>
 #include <memory>
 #include <iostream>
+#include "FrameBuffer.h"
 class MultisampledFrameBuffer
 {
 public:
     MultisampledFrameBuffer() = delete;
     MultisampledFrameBuffer(const MultisampledFrameBuffer&) = delete;//Removes the copy constructor
-    MultisampledFrameBuffer(uint32_t width, uint32_t height);
+    MultisampledFrameBuffer(uint32_t width, uint32_t height, uint16_t samples);
     virtual ~MultisampledFrameBuffer();
 
     operator uint32_t() const;
@@ -17,14 +18,17 @@ public:
     uint32_t getTexture();
     uint32_t getRender();
 
+    void blitBuffers();
+
 
 private:
-    uint32_t tex{0};
-    uint32_t fbo{0};
-    uint32_t rbo{0};
+    uint32_t tex;
+    uint32_t fbo;
+    uint32_t rbo;
+    uint16_t samples;
     uint32_t width;
     uint32_t height;
 
-    int num_samples{16};
+    std::unique_ptr<FrameBuffer> proxy_frame_buffer;
 
 };

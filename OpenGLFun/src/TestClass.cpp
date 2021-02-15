@@ -4,7 +4,7 @@ using namespace std::chrono_literals;
 
 TestClass::TestClass()
 {
-    update_thread = std::make_unique<PeriodicThread>(100ms,"Update",[this]()
+    update_thread = std::make_unique<PeriodicThread>(20ms,"Update",[this]()
     {
         update();
     });
@@ -13,6 +13,7 @@ TestClass::TestClass()
 void TestClass::display()
 {
     std::lock_guard<std::mutex> lck (mtx);
+    std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //std::lock_guard<std::mutex> lck (mtx);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Set background color to black and opaque
@@ -27,7 +28,7 @@ void TestClass::display()
 
     glEnable(GL_TEXTURE_2D);
     glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-    glBindTexture(GL_TEXTURE_2D, tex); 
+    glBindTexture(GL_TEXTURE_2D, fb->getTexture()); 
 
     glBegin(GL_QUADS);
     {
@@ -50,16 +51,19 @@ void TestClass::display()
 
     glFlush();  // Render now
     glutSwapBuffers();
+    std::chrono::steady_clock::time_point end = std::chrono::steady_clock::now();
+    std::cout << "Time difference = " << std::chrono::duration_cast<std::chrono::microseconds>(end - begin).count() << "[µs]" << std::endl;
 }
 
 void TestClass::generateTexture()
 {
-    fb = std::make_unique<MultisampledFrameBuffer>(10,10);
+    fb = std::make_unique<MultisampledFrameBuffer>(10,10,16);
     glBindFramebuffer(GL_FRAMEBUFFER, *fb);
 
-    
     glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);           
+    glClear(GL_COLOR_BUFFER_BIT);      
+
+       
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glMatrixMode(GL_PROJECTION);      // Select the Projection matrix for operation
@@ -70,35 +74,40 @@ void TestClass::generateTexture()
     Rectangle rect{4.0f,4.0f,Point{6.5f,6.5f},Color{1.0f,1.0f,1.0f,1.0f}};
     rect.draw();
     glFlush();
+            if(glGetError())
+    {
+        printf("Got error!\n");
+    }
+    fb->blitBuffers();
 
     
  
-    glGenFramebuffers(1, &fbo);
-    glBindFramebuffer(GL_FRAMEBUFFER, fbo);
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
+    // glGenFramebuffers(1, &fbo);
+    // glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+    // glGenTextures(1, &tex);
+    // glBindTexture(GL_TEXTURE_2D, tex);
+    // glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 10, 10, 0, GL_RGB, GL_UNSIGNED_BYTE, NULL);
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    // glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
 
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
+    // glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, tex, 0);
 
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);  
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 10, 10);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    // glGenRenderbuffers(1, &rbo);
+    // glBindRenderbuffer(GL_RENDERBUFFER, rbo);  
+    // glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, 10, 10);
+    // glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
     
     
     
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, *fb);
+    // glBindFramebuffer(GL_READ_FRAMEBUFFER, *fb);
     
 
     
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
+    // glBindFramebuffer(GL_DRAW_FRAMEBUFFER, fbo);
     
     
-    glBlitNamedFramebuffer(*fb, fbo, 0, 0, 10, 10, 0, 0, 10, 10, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    // glBlitNamedFramebuffer(*fb, fbo, 0, 0, 10, 10, 0, 0, 10, 10, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 
 
@@ -112,7 +121,9 @@ void TestClass::generateTexture()
     };
 
     std::unique_ptr<color[]> data(new color[20*20]);
-
+    int maxSamples;
+    glGetIntegerv ( GL_MAX_SAMPLES, &maxSamples );
+    printf("%d\n", maxSamples);
 
 }
 
