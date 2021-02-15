@@ -28,3 +28,9 @@ void Rectangle::draw()
     glPopMatrix();
 }
 
+void Rectangle::move(Point amount)
+{
+    position.x += amount.x;
+    position.y += amount.y;
+}
+

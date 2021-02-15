@@ -7,6 +7,7 @@
 #include <vector>
 #include <chrono>
 #include <iostream>
+#include <GLFW/glfw3.h>
 
 #include "Shape.h"
 #include "Rectangle.h"
@@ -24,7 +25,7 @@ public:
 
     TestClass();
 
-    void start();
+    void start(GLFWwindow* window);
     void display();
 
     void generateTexture();
@@ -40,4 +41,7 @@ private:
     uint32_t tex{0};
     uint32_t fbo{0};
     uint32_t rbo{0};
+    Rectangle rect{2.5f,1.5f,Point{2.0f, 2.0f},Color{0.0f,0.0f,1.0f,0.7f}};
+
+    GLFWwindow* window;
 };

@@ -4,7 +4,7 @@ using namespace std::chrono_literals;
 
 TestClass::TestClass()
 {
-    update_thread = std::make_unique<PeriodicThread>(20ms,"Update",[this]()
+    update_thread = std::make_unique<PeriodicThread>(66ms,"Update",[this]()
     {
         update();
     });
@@ -13,6 +13,28 @@ TestClass::TestClass()
 void TestClass::display()
 {
     std::lock_guard<std::mutex> lck (mtx);
+    //generateTexture();
+
+    glBindFramebuffer(GL_FRAMEBUFFER, *fb);
+
+    glClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
+
+       
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glMatrixMode(GL_PROJECTION);      // Select the Projection matrix for operation
+    glLoadIdentity();                 // Reset Projection matrix
+    gluOrtho2D(0.0, 32.0, 0.0, 32.0); // Set clipping area's left, right, bottom, top
+    glViewport(0,0,32,32);
+    glMatrixMode(GL_MODELVIEW);
+    rect.draw();
+    if(glGetError())
+    {
+        printf("Got error!\n");
+    }
+    fb->blitBuffers();
+
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
     //std::lock_guard<std::mutex> lck (mtx);
     glClearColor(0.2f, 0.2f, 0.2f, 1.0f); // Set background color to black and opaque
@@ -31,65 +53,32 @@ void TestClass::display()
     glBegin(GL_QUADS);
     {
         glTexCoord2f(0, 0);
-        glVertex2f(100, 100);
+        glVertex2f(000, 000);
 
         glTexCoord2f(1, 0);
-        glVertex2f(300, 100);
+        glVertex2f(500, 000);
 
         glTexCoord2f(1, 1);
-        glVertex2f(300, 300);
+        glVertex2f(500, 500);
 
         glTexCoord2f(0, 1);
-        glVertex2f(100, 300);
+        glVertex2f(000, 500);
     }
-    glPopMatrix();
     glEnd();
+    glPopMatrix();
+    glBindTexture(GL_TEXTURE_2D, 0); 
     glFlush();  // Render now
+    glfwSwapBuffers(window);
 }
 
 void TestClass::generateTexture()
 {
-    fb = std::make_unique<MultisampledFrameBuffer>(10,10,16);
-    glBindFramebuffer(GL_FRAMEBUFFER, *fb);
-
-    glClearColor(0.0f, 0.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT);
-
-       
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glMatrixMode(GL_PROJECTION);      // Select the Projection matrix for operation
-    glLoadIdentity();                 // Reset Projection matrix
-    gluOrtho2D(0.0, 10.0, 0.0, 10.0); // Set clipping area's left, right, bottom, top
-    glViewport(0,0,10,10);
-    glMatrixMode(GL_MODELVIEW);
-    Rectangle rect{4.0f,4.0f,Point{6.5f,6.5f},Color{1.0f,1.0f,1.0f,1.0f}};
-    rect.draw();
-    glFlush();
-    if(glGetError())
-    {
-        printf("Got error!\n");
-    }
-    fb->blitBuffers();
-
-
-    struct color
-    {
-        float r;
-        float g;
-        float b;
-        float a;
-    };
-
-    std::unique_ptr<color[]> data(new color[20*20]);
-    int maxSamples;
-    glGetIntegerv ( GL_MAX_SAMPLES, &maxSamples );
-    printf("%d\n", maxSamples);
-
+    fb = std::make_unique<MultisampledFrameBuffer>(32,32,8);
 }
 
-void TestClass::start()
+void TestClass::start(GLFWwindow* window)
 {
+    this->window = window;
     generateTexture();
     update_thread->start();
 }
@@ -97,5 +86,6 @@ void TestClass::start()
 void TestClass::update()
 {
     std::lock_guard<std::mutex> lck (mtx);
+    rect.move(Point{0.2,0.3});
     //std::cout << static_cast<int>(*fb) << std::endl;
 }

@@ -17,5 +17,6 @@ public:
     Rectangle() = delete;
     Rectangle(float width, float height, Point position, Color color, DrawType dt = CENTER);
     virtual void draw() override;
+    void move(Point amount);
 };
 

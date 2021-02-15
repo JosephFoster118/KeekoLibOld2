@@ -19,6 +19,7 @@ public:
     uint32_t getRender();
 
     void blitBuffers();
+    void bindBuffer();
 
 
 private:
