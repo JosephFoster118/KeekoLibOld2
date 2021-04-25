@@ -4,9 +4,16 @@
 cmake_minimum_required (VERSION 2.8.11)
 project (OpenGLFun)
 include_directories(include)
+include_directories(include/OpenGLObjects)
 
-set(SRCS "main.cpp" "src/Shape.cpp" "src/Rectangle.cpp" "src/TestClass.cpp"
-    "src/FrameBuffer.cpp" "src/MultisampledFrameBuffer.cpp")
+set( SRCS
+    "src/main.cpp"
+    "src/Shape.cpp"
+    "src/Rectangle.cpp"
+    "src/TestClass.cpp"
+    "src/OpenGLObjects/FrameBuffer.cpp"
+    "src/OpenGLObjects/MultisampledFrameBuffer.cpp"
+)
 
 
 add_executable (OpenGLFun ${SRCS})
